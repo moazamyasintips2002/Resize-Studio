@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resize Studio - All-in-One Utility Suite</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <i data-lucide="scaling" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-400 bg-clip-text text-transparent">Resize Studio</span>
+                    <span class="hidden sm:inline-block text-xs text-brand-400 font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 ml-2">Image & File Suite</span>
+                </div>
+            </div>
+
+            <!-- Quick Action Shortcuts for Students & Locals -->
+            <div class="hidden md:flex items-center space-x-2 text-xs">
+                <button onclick="switchTab('presets')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-amber-400"></i>
+                    <span>Student Exam Presets</span>
+                </button>
+                <button onclick="switchTab('cloud')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700">
+                    <i data-lucide="cloud" class="w-4 h-4 text-brand-400"></i>
+                    <span id="cloudHeaderCount">Cloud Drive (0)</span>
+                </button>
+            </div>
+
+            <!-- Theme & Mobile Menu Controls -->
+            <div class="flex items-center space-x-3">
+                <button id="themeToggleBtn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Toggle Theme">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+                <div class="md:hidden">
+                    <button id="mobileMenuBtn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto px-2 sm:px-4 lg:px-8 py-4 gap-6">
+
+        <!-- Navigation Sidebar / Tabs -->
+        <aside id="sidebar" class="w-full md:w-64 bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3 flex flex-col shrink-0 space-y-1">
+            <div class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Main Suite</div>
+            
+            <nav class="space-y-1 flex-1">
+                <button data-tab="resizer" onclick="switchTab('resizer')" class="tab-btn active w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-slate-300 hover:bg-slate-800/80">
+                    <i data-lucide="scaling" class="w-5 h-5 text-indigo-400"></i>
+                    <span>Photo Resizer</span>
+                </button>
+
+                <button data-tab="converter" onclick="switchTab('converter')" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-slate-300 hover:bg-slate-800/80">
+                    <i data-lucide="refresh-cw" class="w-5 h-5 text-cyan-400"></i>
+                    <span>Format Converter</span>
+                </button>
+
+                <button data-tab="compressor" onclick="switchTab('compressor')" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-slate-300 hover:bg-slate-800/80">
+                    <i data-lucide="file-archive" class="w-5 h-5 text-amber-400"></i>
+                    <span>File Size Reducer</span>
+                </button>
+
+                <div class="pt-3 border-t border-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Storage & Utilities</div>
+
+                <button data-tab="presets" onclick="switchTab('presets')" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-slate-300 hover:bg-slate-800/80">
+                    <i data-lucide="award" class="w-5 h-5 text-yellow-400"></i>
+                    <span>Exam & Govt Presets</span>
+                </button>
+
+                <button data-tab="cloud" onclick="switchTab('cloud')" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-slate-300 hover:bg-slate-800/80">
+                    <i data-lucide="cloud" class="w-5 h-5 text-sky-400"></i>
+                    <span>ResizeCloud Drive</span>
+                </button>
+            </nav>
+
+            <!-- Storage Info Widget -->
+            <div class="mt-auto pt-4 border-t border-slate-800/80 px-3">
+                <div class="bg-slate-900/90 rounded-xl p-3 border border-slate-800 text-xs space-y-1.5">
+                    <div class="flex justify-between text-slate-400 font-medium">
+                        <span>Local Cloud Storage</span>
+                        <span id="storageUsagePct">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="storageBar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] text-slate-500">
+                        <span id="storageUsedText">0 MB used</span>
+                        <span>50 MB Max</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 bg-slate-950/40 border border-slate-800/80 rounded-2xl p-4 sm:p-6 min-h-[600px] flex flex-col relative overflow-hidden">
+
+            <!-- Global File Drop Zone Overlay -->
+            <div id="globalDropzone" class="hidden absolute inset-0 z-40 bg-brand-600/90 backdrop-blur-sm border-4 border-dashed border-white rounded-2xl flex flex-col items-center justify-center text-white pointer-events-none">
+                <i data-lucide="upload-cloud" class="w-16 h-16 animate-bounce mb-3"></i>
+                <h3 class="text-2xl font-bold">Drop your image or document here</h3>
+                <p class="text-sm text-brand-100">Supports JPG, PNG, WebP, PDF, GIF</p>
+            </div>
+
+            <!-- ======================================================== -->
+            <!-- TAB 1: PHOTO RESIZER -->
+            <!-- ======================================================== -->
+            <section id="tab-resizer" class="tab-content block space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="scaling" class="w-6 h-6 text-indigo-400"></i>
+                            Photo Resizer & Dimension Tool
+                        </h2>
+                        <p class="text-slate-400 text-sm">Resize images by exact pixels, percentage, cm, or inches with aspect ratio locking.</p>
+                    </div>
+                    <label class="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl transition cursor-pointer shadow-lg shadow-indigo-600/20">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span>Select Photo</span>
+                        <input type="file" id="resizerFileInput" accept="image/*" class="hidden">
+                    </label>
+                </div>
+
+                <div id="resizerWorkspace" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-slate-900/90 rounded-2xl border border-slate-800 p-4 flex flex-col items-center justify-center min-h-[400px]">
+                        <canvas id="resizerCanvas" class="max-w-full max-h-[500px] object-contain rounded-lg shadow-2xl"></canvas>
+                        <div id="resizerInfoBadge" class="mt-3 text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                            Original: <span id="origDimText" class="text-slate-200 font-medium">0 x 0 px</span> | New: <span id="newDimText" class="text-indigo-400 font-medium">0 x 0 px</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 space-y-5 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <h3 class="text-base font-semibold text-slate-200 border-b border-slate-800 pb-2">Resize Settings</h3>
+
+                            <!-- Dimension Inputs -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs font-medium text-slate-400 block mb-1">Width (px)</label>
+                                    <input type="number" id="resizerWidth" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium text-slate-400 block mb-1">Height (px)</label>
+                                    <input type="number" id="resizerHeight" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between py-1">
+                                <label class="text-xs font-medium text-slate-300 flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="resizerLockAspect" checked class="rounded bg-slate-800 border-slate-700 text-indigo-600 accent-indigo-500">
+                                    <span>Lock Aspect Ratio</span>
+                                </label>
+                            </div>
+
+                            <!-- Quick Preset Standard Dimensions -->
+                            <div>
+                                <label class="text-xs font-medium text-slate-400 block mb-2">Preset Dimensions</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="applyResizePreset(350, 450)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        Passport (350x450)
+                                    </button>
+                                    <button onclick="applyResizePreset(600, 600)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        Square ID (600x600)
+                                    </button>
+                                    <button onclick="applyResizePreset(1920, 1080)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        Full HD (1920x1080)
+                                    </button>
+                                    <button onclick="applyResizePreset(1280, 720)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        HD Ready (1280x720)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="downloadResizedBtn" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>Download Resized Image</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="resizerEmptyState" class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4 bg-slate-900/30 transition">
+                    <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <i data-lucide="scaling" class="w-8 h-8"></i>
+                    </div>
+                    <div class="max-w-md space-y-1">
+                        <h3 class="text-lg font-semibold text-white">Resize image to exact specs</h3>
+                        <p class="text-sm text-slate-400">Upload a photo to change dimensions, lock aspect ratios, or pick exam photo presets.</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ======================================================== -->
+            <!-- TAB 2: FILE FORMAT CONVERTER -->
+            <!-- ======================================================== -->
+            <section id="tab-converter" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-6 h-6 text-cyan-400"></i>
+                            File Format Converter
+                        </h2>
+                        <p class="text-slate-400 text-sm">Convert JPG, PNG, WEBP, GIF, BMP, and PDF files back and forth in seconds.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Image to Image / PDF Converter Card -->
+                    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 space-y-5">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                                <i data-lucide="file-type-2" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-semibold text-white">Image & Doc Converter</h3>
+                                <p class="text-xs text-slate-400">Convert JPG to PNG, WEBP to JPG, Image to PDF</p>
+                            </div>
+                        </div>
+
+                        <label class="block border-2 border-dashed border-slate-700 hover:border-cyan-500/50 rounded-xl p-6 text-center cursor-pointer transition">
+                            <i data-lucide="upload-cloud" class="w-8 h-8 text-cyan-400 mx-auto mb-2"></i>
+                            <span class="text-xs text-slate-300 font-medium block">Choose Image or File</span>
+                            <span id="converterFileName" class="text-[11px] text-slate-500 mt-1 block">Supports JPG, PNG, WebP, GIF, BMP</span>
+                            <input type="file" id="converterInputFile" accept="image/*" class="hidden">
+                        </label>
+
+                        <div class="space-y-3">
+                            <label class="text-xs font-medium text-slate-400 block">Target Output Format</label>
+                            <select id="converterTargetFormat" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
+                                <option value="png">PNG (.png) - Lossless & Transparent</option>
+                                <option value="jpeg">JPG / JPEG (.jpg) - Standard Compressed</option>
+                                <option value="webp">WebP (.webp) - Modern Web Format</option>
+                                <option value="pdf">PDF Document (.pdf) - Printable Single Page</option>
+                            </select>
+
+                            <button id="processConvertBtn" disabled class="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-600 text-white text-sm font-semibold shadow transition flex items-center justify-center gap-2">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                <span>Convert & Download</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick 1-Click Converter Shortcuts -->
+                    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 space-y-4">
+                        <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Quick 1-Click Convert Shortcuts
+                        </h3>
+                        <p class="text-xs text-slate-400">Common file format conversions required by government portals & colleges.</p>
+
+                        <div class="space-y-2 pt-2">
+                            <button onclick="quickConvertTrigger('png')" class="w-full p-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 flex items-center justify-between text-xs font-medium text-slate-200 transition">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold">JPG</span>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-500"></i>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">PNG</span>
+                                </div>
+                                <span class="text-slate-400">Convert JPG to PNG</span>
+                            </button>
+
+                            <button onclick="quickConvertTrigger('jpeg')" class="w-full p-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 flex items-center justify-between text-xs font-medium text-slate-200 transition">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold">WEBP</span>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-500"></i>
+                                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold">JPG</span>
+                                </div>
+                                <span class="text-slate-400">Convert WEBP to JPG</span>
+                            </button>
+
+                            <button onclick="quickConvertTrigger('pdf')" class="w-full p-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 flex items-center justify-between text-xs font-medium text-slate-200 transition">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold">IMG</span>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-500"></i>
+                                    <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">PDF</span>
+                                </div>
+                                <span class="text-slate-400">Convert Image to PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ======================================================== -->
+            <!-- TAB 3: FILE SIZE REDUCER & COMPRESSOR -->
+            <!-- ======================================================== -->
+            <section id="tab-compressor" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="file-archive" class="w-6 h-6 text-amber-400"></i>
+                            Image Size & File Size Reducer
+                        </h2>
+                        <p class="text-slate-400 text-sm">Compress images down to under 20KB, 50KB, or 100KB with live preview comparison.</p>
+                    </div>
+                    <label class="flex items-center space-x-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm rounded-xl transition cursor-pointer shadow-lg shadow-amber-600/20">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span>Select Image</span>
+                        <input type="file" id="compressorFileInput" accept="image/*" class="hidden">
+                    </label>
+                </div>
+
+                <div id="compressorWorkspace" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-slate-900/90 rounded-2xl border border-slate-800 p-4 flex flex-col items-center justify-center min-h-[400px]">
+                        <img id="compressorPreviewImg" class="max-w-full max-h-[450px] object-contain rounded-lg shadow-2xl" src="" alt="Compressed Preview">
+                        <div class="mt-4 flex items-center gap-4 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-xs">
+                            <div>Original: <span id="compOrigSizeText" class="text-rose-400 font-bold">0 KB</span></div>
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-slate-500"></i>
+                            <div>Compressed: <span id="compNewSizeText" class="text-emerald-400 font-bold">0 KB</span></div>
+                            <div class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold" id="compSavedPctText">-0%</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 space-y-5 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <h3 class="text-base font-semibold text-slate-200 border-b border-slate-800 pb-2">Compression Settings</h3>
+
+                            <!-- Quality Slider -->
+                            <div>
+                                <div class="flex justify-between text-xs text-slate-300 font-medium mb-1">
+                                    <span>Image Quality</span>
+                                    <span id="compQualityVal">75%</span>
+                                </div>
+                                <input type="range" id="compQualitySlider" min="5" max="100" value="75" class="w-full accent-amber-500 bg-slate-800">
+                            </div>
+
+                            <!-- Target Size Presets for Exams & Govt Forms -->
+                            <div>
+                                <label class="text-xs font-medium text-slate-400 block mb-2">Preset Size Targets for Forms</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="applyTargetSizePreset(20)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        Under 20 KB (Signature)
+                                    </button>
+                                    <button onclick="applyTargetSizePreset(50)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        Under 50 KB (Passport)
+                                    </button>
+                                    <button onclick="applyTargetSizePreset(100)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        Under 100 KB (Certificate)
+                                    </button>
+                                    <button onclick="applyTargetSizePreset(200)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 text-left">
+                                        Under 200 KB (Govt Doc)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="downloadCompressedBtn" class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold shadow-lg shadow-amber-600/20 transition flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>Download Reduced File</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="compressorEmptyState" class="border-2 border-dashed border-slate-800 hover:border-amber-500/50 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4 bg-slate-900/30 transition">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                        <i data-lucide="file-archive" class="w-8 h-8"></i>
+                    </div>
+                    <div class="max-w-md space-y-1">
+                        <h3 class="text-lg font-semibold text-white">Reduce file size to under 20KB or 50KB</h3>
+                        <p class="text-sm text-slate-400">Perfect for online application portals, college registration, & government job forms.</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ======================================================== -->
+            <!-- TAB 4: EXAM & GOVT PRESETS (For Students & Local People) -->
+            <!-- ======================================================== -->
+            <section id="tab-presets" class="tab-content hidden space-y-6">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="award" class="w-6 h-6 text-yellow-400"></i>
+                        Student & Govt Portal Presets
+                    </h2>
+                    <p class="text-slate-400 text-sm">Instant 1-click photo & document formatting tools for popular exam portals, passport forms, and college admissions.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Card 1: Passport Photo Maker -->
+                    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 space-y-3 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                                <i data-lucide="user-check" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-base font-semibold text-white">Passport Photo Tool</h3>
+                            <p class="text-xs text-slate-400">Crop to 35x45mm (350x450px) and compress under 50KB.</p>
+                        </div>
+                        <button onclick="launchPresetWorkflow('passport')" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition">
+                            Prepare Passport Photo
+                        </button>
+                    </div>
+
+                    <!-- Card 2: Signature Resizer -->
+                    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 space-y-3 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                                <i data-lucide="pen-tool" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-base font-semibold text-white">Signature Spec Maker</h3>
+                            <p class="text-xs text-slate-400">Resize signature photo to 140x60px & compress &lt; 20KB.</p>
+                        </div>
+                        <button onclick="launchPresetWorkflow('signature')" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition">
+                            Prepare Signature
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ======================================================== -->
+            <!-- TAB 5: RESIZECLOUD DRIVE -->
+            <!-- ======================================================== -->
+            <section id="tab-cloud" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="cloud" class="w-6 h-6 text-sky-400"></i>
+                            ResizeCloud Local Storage Drive
+                        </h2>
+                        <p class="text-slate-400 text-sm">Save your converted files and compressed documents privately on your device.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="downloadAllCloudZipBtn" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow">
+                            <i data-lucide="archive" class="w-4 h-4"></i> Export All as ZIP
+                        </button>
+                        <button id="clearCloudDriveBtn" class="px-3 py-2 bg-slate-800 hover:bg-rose-900/40 text-rose-400 text-xs font-semibold rounded-xl transition border border-slate-700">
+                            Clear Storage
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cloud Files Grid -->
+                <div id="cloudGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <!-- Dynamically populated files -->
+                </div>
+
+                <div id="cloudEmptyState" class="border-2 border-dashed border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4 bg-slate-900/30">
+                    <div class="w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                        <i data-lucide="cloud-off" class="w-8 h-8"></i>
+                    </div>
+                    <div class="max-w-md space-y-1">
+                        <h3 class="text-lg font-semibold text-white">Your Cloud Drive is empty</h3>
+                        <p class="text-sm text-slate-400">Converted images and resized files saved to cloud will appear here.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>&copy; 2026 Resize Studio - Private Client-Side Document & Photo Suite</span>
+            <span class="text-slate-400">Built for Students & Local Community Tools</span>
+        </div>
+    </footer>
+
+    <!-- JS Scripts -->
+    <script src="tools.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

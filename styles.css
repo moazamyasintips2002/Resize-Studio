@@ -1,0 +1,101 @@
+/* Custom App CSS Styling for OmniScan Studio */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Tab button active state */
+.tab-btn.active {
+    background-color: rgba(30, 41, 59, 0.9);
+    border-left: 3px solid #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: rgba(30, 41, 59, 0.5);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Custom Canvas container shadow & checkboard for transparent backgrounds */
+.bg-checkerboard {
+    background-image: radial-gradient(#475569 1px, transparent 1px);
+    background-size: 12px 12px;
+}
+
+/* Cropper custom theme tweaks */
+.cropper-bg {
+    background-image: radial-gradient(#334155 1px, transparent 1px) !important;
+    background-size: 12px 12px !important;
+}
+
+.cropper-view-box {
+    outline: 2px solid #3b82f6 !important;
+    outline-color: rgba(59, 130, 246, 0.8) !important;
+}
+
+.cropper-line, .cropper-point {
+    background-color: #3b82f6 !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content.block {
+    animation: fadeIn 0.25s ease-out forwards;
+}
+
+/* Light Mode Overrides */
+html:not(.dark) body {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+html:not(.dark) header {
+    background-color: rgba(255, 255, 255, 0.85);
+    border-color: #e2e8f0;
+}
+
+html:not(.dark) aside, 
+html:not(.dark) main {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+}
+
+html:not(.dark) .tab-btn.active {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-left-color: #2563eb;
+}
+
+html:not(.dark) .tab-btn {
+    color: #475569;
+}
+
+html:not(.dark) footer {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+}
