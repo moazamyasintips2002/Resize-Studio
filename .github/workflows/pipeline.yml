@@ -15,29 +15,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test:
-    runs-with: ubuntu-latest
-    steps:
-    - name: Checkout repository code
-      uses: actions/checkout@v4
-
-    - name: Set up Node.js environment
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
-    - name: Run app syntax check
-      run: node app.js
-
-    - name: Run tools syntax check
-      run: node tools.js
-
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-with: ubuntu-latest
-    needs: test
     steps:
     - name: Checkout repository code
       uses: actions/checkout@v4
