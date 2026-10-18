@@ -6,7 +6,7 @@ pipeline {
         REGISTRY_REPO   = 'moazamyasin/resize-studio'
         IMAGE_TAG       = 'latest'
         // Make sure this matches your Jenkins Credentials ID for Docker Hub
-        DOCKER_CREDS_ID = '4c178f54-a872-445a-8553-296d96ee9ebb'
+        DOCKER_CREDS_ID = 'ae697d34-d8f2-48b5-9578-3bca0831a9c7'
     }
 
     stages {
